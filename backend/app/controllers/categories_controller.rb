@@ -35,7 +35,11 @@ class CategoriesController < ApplicationController
 
   # DELETE /categories/1
   def destroy
-    @category.destroy!
+    if @category.destroy
+      head :no_content
+    else
+      render json: @category.errors, status: :unprocessable_content
+    end
   end
 
   private
