@@ -19,6 +19,7 @@ const errors = ref({})
 
 const loadError = ref('')
 let lastTasksRequest = 0
+const loading = ref(true)
 
 async function loadTasks() {
   const requestId = ++lastTasksRequest
@@ -30,6 +31,8 @@ async function loadTasks() {
   } catch {
     if (requestId !== lastTasksRequest) return
     loadError.value = 'Não foi possível carregar as tarefas. Verifique se a API está rodando.'
+  } finally {
+    if (requestId === lastTasksRequest) loading.value = false
   }
 }
 
@@ -260,7 +263,8 @@ onMounted(() => {
           </tbody>
         </table>
       </div>
-      <p v-if="!loadError && tasks.length === 0" class="empty">Nenhuma tarefa encontrada.</p>
+      <p v-if="loading" class="empty">Carregando…</p>
+      <p v-else-if="!loadError && tasks.length === 0" class="empty">Nenhuma tarefa encontrada.</p>
     </section>
 
     <section class="card">
