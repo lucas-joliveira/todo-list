@@ -83,6 +83,17 @@ function resetForm() {
   errors.value = {}
 }
 
+async function toggleDone(task) {
+  const status = task.status === 'done' ? 'pending' : 'done'
+  try {
+    await api.patch(`/tasks/${task.id}`, { task: { status } })
+    if (form.value.id === task.id) form.value.status = status
+  } catch {
+    alert('Erro ao atualizar a tarefa.')
+  }
+  loadTasks()
+}
+
 async function deleteTask(task) {
   if (!confirm(`Excluir a tarefa "${task.title}"?`)) return
   try {
@@ -244,10 +255,20 @@ onMounted(() => {
             </tr>
           </thead>
           <tbody>
-            <tr v-for="task in tasks" :key="task.id">
+            <tr v-for="task in tasks" :key="task.id" :class="{ 'is-done': task.status === 'done' }">
               <td class="title-cell">
-                <strong>{{ task.title }}</strong>
-                <small v-if="task.description">{{ task.description }}</small>
+                <label class="task-title">
+                  <input
+                    type="checkbox"
+                    :checked="task.status === 'done'"
+                    :aria-label="`Marcar ${task.title} como concluída`"
+                    @change="toggleDone(task)"
+                  />
+                  <span>
+                    <strong>{{ task.title }}</strong>
+                    <small v-if="task.description">{{ task.description }}</small>
+                  </span>
+                </label>
               </td>
               <td>{{ task.category.name }}</td>
               <td><span class="badge" :class="`status-${task.status}`">{{ statusLabels[task.status] }}</span></td>
@@ -402,6 +423,18 @@ td { padding: 12px; border-bottom: 1px solid var(--border); vertical-align: midd
 tbody tr:last-child td { border-bottom: none; }
 tbody tr:hover { background: #fafafa; }
 .title-cell small { display: block; margin-top: 2px; color: var(--muted); }
+.task-title { display: flex; align-items: flex-start; gap: 10px; cursor: pointer; }
+.task-title input {
+  width: 16px;
+  height: 16px;
+  margin: 2px 0 0;
+  padding: 0;
+  flex-shrink: 0;
+  cursor: pointer;
+  accent-color: var(--primary);
+}
+.is-done td { color: var(--muted); }
+.is-done .task-title strong { font-weight: 500; text-decoration: line-through; }
 .actions { display: flex; justify-content: flex-end; gap: 6px; }
 
 .badge {
