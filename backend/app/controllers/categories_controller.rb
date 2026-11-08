@@ -20,7 +20,7 @@ class CategoriesController < ApplicationController
     if @category.save
       render json: @category, status: :created, location: @category
     else
-      render json: @category.errors, status: :unprocessable_content
+      render json: @category.errors.to_hash(true), status: :unprocessable_content
     end
   end
 
@@ -29,7 +29,7 @@ class CategoriesController < ApplicationController
     if @category.update(category_params)
       render json: @category
     else
-      render json: @category.errors, status: :unprocessable_content
+      render json: @category.errors.to_hash(true), status: :unprocessable_content
     end
   end
 
@@ -38,7 +38,7 @@ class CategoriesController < ApplicationController
     if @category.destroy
       head :no_content
     else
-      render json: @category.errors, status: :unprocessable_content
+      render json: @category.errors.to_hash(true), status: :unprocessable_content
     end
   end
 
