@@ -1,5 +1,7 @@
 # To-Do List — Rails + Vue
 
+[![CI](https://github.com/lucas-joliveira/todo-list/actions/workflows/ci.yml/badge.svg?branch=develop)](https://github.com/lucas-joliveira/todo-list/actions/workflows/ci.yml)
+
 Aplicação de lista de tarefas com **API REST em Ruby on Rails** e **frontend em Vue.js**, rodando inteira em containers Docker.
 
 Cada tarefa pertence a uma categoria e tem título, descrição, status, prioridade e data de vencimento. A tela lista as tarefas com filtros por categoria, status e prioridade, e permite criar, editar e excluir tarefas e categorias.
@@ -22,15 +24,24 @@ Cada tarefa pertence a uma categoria e tem título, descrição, status, priorid
 | Backend | Ruby 3.3.3, Rails 8.1 (modo API), ActiveRecord |
 | Banco de dados | PostgreSQL 16 |
 | Frontend | Vue 3 (Composition API), Vite, Axios |
+| Testes | RSpec e FactoryBot |
+| Qualidade | GitHub Actions (RSpec, RuboCop, Brakeman, bundler-audit) e Dependabot |
 | Infraestrutura | Docker e Docker Compose |
 
 ## Arquitetura
 
 ```
 todo-list/
-├── backend/             # API Rails (MVC: models, controllers e JSON como view)
-├── frontend/            # SPA em Vue
-└── docker-compose.yml   # serviços db, backend e frontend
+├── .github/                  # CI (GitHub Actions) e Dependabot
+├── backend/                  # API Rails (MVC: models, controllers e JSON como view)
+│   └── spec/                 # testes RSpec: models e requests
+├── frontend/                 # SPA em Vue
+│   └── src/
+│       ├── App.vue           # orquestra os componentes
+│       ├── components/       # componentes de tela (TaskForm, TaskTable, TaskRow…)
+│       ├── composables/      # estado e chamadas à API (useTasks, useCategories)
+│       └── utils/            # formatação e rótulos
+└── docker-compose.yml        # serviços db, backend e frontend
 ```
 
 | Serviço | Porta no host | Descrição |
@@ -65,6 +76,24 @@ Acesse:
 - API: http://localhost:3000/tasks
 
 Para parar: `docker compose down`. Para apagar também os dados do banco: `docker compose down -v`.
+
+## Testes e qualidade
+
+A API tem testes automatizados com **RSpec**: specs de model (validações, enums, índice único, exclusão bloqueada) e request specs dos dois controllers (CRUD, filtros e códigos de resposta).
+
+```bash
+docker compose exec backend bundle exec rspec
+```
+
+Verificações de estilo e segurança:
+
+```bash
+docker compose exec backend bin/rubocop
+docker compose exec backend bin/brakeman
+docker compose exec backend bin/bundler-audit
+```
+
+O **GitHub Actions** roda tudo isso a cada pull request e a cada push na `main` e na `develop` (RSpec com PostgreSQL, RuboCop, Brakeman e bundler-audit). O **Dependabot** abre pull requests para atualizar as dependências do backend, do frontend e das actions.
 
 ## API
 
@@ -111,20 +140,25 @@ Erros de validação retornam **422** com as mensagens completas, em português,
 { "title": ["Título não pode ficar em branco"], "category": ["Categoria é obrigatória"] }
 ```
 
+Outros exemplos de 422: data de vencimento inválida (`"Vencimento não é uma data válida"`), `category_id` inexistente (`"Categoria não existe"`) e exclusão de categoria com tarefas (`"Não é possível excluir: existem tarefas vinculadas"`).
+
 ## Decisões técnicas
 
 - **Status e prioridade como `enum` de inteiros**: o banco guarda números e a API expõe nomes legíveis. Com `validate: true`, um valor inválido gera erro 422 em vez de exceção.
-- **Integridade em duas camadas**: as validações ficam no model (`presence`, `uniqueness`, `belongs_to`) e as restrições no banco (`null: false`, chave estrangeira).
+- **Integridade em duas camadas**: as validações ficam no model (`presence`, `uniqueness`, categoria existente, data válida) e as restrições no banco (`null: false`, chave estrangeira, índice único em `lower(name)`).
 - **Exclusão de categoria com tarefas é bloqueada** (`dependent: :restrict_with_error`) para não apagar tarefas sem querer.
 - **Categoria incluída no JSON da tarefa**, com `includes(:category)` para evitar o problema de N+1 queries.
 - **Configuração por variáveis de ambiente**: `DB_HOST`, `DB_PORT` e `VITE_API_URL` permitem rodar o mesmo código dentro e fora do Docker.
 - **CORS** liberado apenas para as origens do frontend, configuráveis pela variável `CORS_ORIGINS` (padrão: `localhost:5173` e `127.0.0.1:5173`).
+- **Frontend componentizado**: o `App.vue` só orquestra componentes que recebem dados por props e avisam ações por eventos; o estado e as chamadas à API ficam em composables.
+- **Testes guiando correções**: bugs encontrados em revisão (como a data inválida aceita em silêncio) foram reproduzidos primeiro em testes e só depois corrigidos.
 
 ## Fluxo de desenvolvimento (GitFlow)
 
-- `main`: versões entregues, marcadas com tags (`v1.0.0`).
+- `main`: versões entregues, marcadas com tags (`v1.0.0`, `v1.0.1`, `v1.1.0`, `v1.2.0`).
 - `develop`: integração das funcionalidades.
 - `feature/*`: uma branch por funcionalidade, integrada à `develop` via pull request.
 - `release/*`: preparação da entrega, integrada à `main` e à `develop`.
+- `hotfix/*`: correção de uma versão entregue, saindo da `main` e integrada à `main` e à `develop`.
 
-Commits seguem o padrão [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`, `chore:`, `docs:`).
+Commits seguem o padrão [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`, `fix:`, `refactor:`, `test:`, `ci:`, `style:`, `chore:`, `docs:`).
