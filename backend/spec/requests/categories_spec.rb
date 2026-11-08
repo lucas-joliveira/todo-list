@@ -11,6 +11,16 @@ RSpec.describe "Categories", type: :request do
       expect(response).to have_http_status(:ok)
       expect(json.pluck("name")).to contain_exactly("Trabalho", "Pessoal")
     end
+
+    it "devolve as categorias em ordem alfabética" do
+      create(:category, name: "Trabalho")
+      create(:category, name: "Estudos")
+      create(:category, name: "Pessoal")
+
+      get "/categories"
+
+      expect(json.pluck("name")).to eq(%w[Estudos Pessoal Trabalho])
+    end
   end
 
   describe "GET /categories/:id" do

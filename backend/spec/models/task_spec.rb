@@ -23,6 +23,27 @@ RSpec.describe Task, type: :model do
     it "aceita tarefa sem descrição e sem vencimento" do
       expect(build(:task, description: nil, due_date: nil)).to be_valid
     end
+
+    it "recusa uma data de vencimento inválida" do
+      task = build(:task, due_date: "not-a-date")
+
+      expect(task).not_to be_valid
+      expect(task.errors[:due_date]).to include("não é uma data válida")
+    end
+
+    it "recusa uma data que não existe no calendário" do
+      task = build(:task, due_date: "2026-02-30")
+
+      expect(task).not_to be_valid
+      expect(task.errors[:due_date]).to include("não é uma data válida")
+    end
+
+    it "avisa que a categoria não existe quando o id não corresponde a nenhuma" do
+      task = build(:task, category: nil, category_id: 0)
+
+      expect(task).not_to be_valid
+      expect(task.errors[:category]).to eq([ "não existe" ])
+    end
   end
 
   describe "valores padrão" do
