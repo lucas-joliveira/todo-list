@@ -27,7 +27,7 @@ class TasksController < ApplicationController
     end
   end
 
-    # PATCH/PUT /tasks/1
+  # PATCH/PUT /tasks/1
   def update
     if @task.update(task_params)
       render json: @task, include: :category
