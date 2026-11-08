@@ -10,6 +10,15 @@ const statusLabels = { pending: 'Pendente', in_progress: 'Em andamento', done: '
 const priorityLabels = { low: 'Baixa', medium: 'Média', high: 'Alta' }
 const formatDate = (date) => (date ? date.split('-').reverse().join('/') : '—')
 
+function todayISO() {
+  const d = new Date()
+  const month = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${d.getFullYear()}-${month}-${day}`
+}
+
+const isOverdue = (task) => Boolean(task.due_date) && task.status !== 'done' && task.due_date < todayISO()
+
 const emptyForm = () => ({
   id: null, title: '', description: '', status: 'pending',
   priority: 'low', due_date: '', category_id: '',
@@ -273,7 +282,10 @@ onMounted(() => {
               <td>{{ task.category.name }}</td>
               <td><span class="badge" :class="`status-${task.status}`">{{ statusLabels[task.status] }}</span></td>
               <td><span class="badge" :class="`priority-${task.priority}`">{{ priorityLabels[task.priority] }}</span></td>
-              <td>{{ formatDate(task.due_date) }}</td>
+              <td class="due-cell" :class="{ overdue: isOverdue(task) }">
+                {{ formatDate(task.due_date) }}
+                <small v-if="isOverdue(task)">atrasada</small>
+              </td>
               <td>
                 <div class="actions">
                   <button class="btn btn-sm btn-ghost" @click="editTask(task)">Editar</button>
@@ -435,6 +447,9 @@ tbody tr:hover { background: #fafafa; }
 }
 .is-done td { color: var(--muted); }
 .is-done .task-title strong { font-weight: 500; text-decoration: line-through; }
+.due-cell { white-space: nowrap; }
+.due-cell small { display: block; font-size: 12px; }
+.overdue { color: var(--danger); font-weight: 500; }
 .actions { display: flex; justify-content: flex-end; gap: 6px; }
 
 .badge {
