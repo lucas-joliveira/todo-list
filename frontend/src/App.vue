@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import api from './api'
 
 const tasks = ref([])
@@ -26,6 +26,20 @@ const emptyForm = () => ({
 })
 const form = ref(emptyForm())
 const errors = ref({})
+const showForm = ref(false)
+const titleInput = ref(null)
+
+async function openForm() {
+  showForm.value = true
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+  await nextTick()
+  titleInput.value?.focus()
+}
+
+function openNewTask() {
+  resetForm()
+  openForm()
+}
 
 const loadError = ref('')
 let lastTasksRequest = 0
@@ -97,11 +111,13 @@ function editTask(task) {
     due_date: task.due_date || '',
     category_id: task.category_id,
   }
+  openForm()
 }
 
 function resetForm() {
   form.value = emptyForm()
   errors.value = {}
+  showForm.value = false
 }
 
 async function toggleDone(task) {
@@ -185,16 +201,19 @@ onMounted(() => {
 <template>
   <div class="app">
     <header class="header">
-      <h1>Minhas tarefas</h1>
-      <p>Organize suas tarefas por categoria, status e prioridade.</p>
+      <div>
+        <h1>Minhas tarefas</h1>
+        <p>Organize suas tarefas por categoria, status e prioridade.</p>
+      </div>
+      <button v-if="!showForm" type="button" class="btn btn-primary" @click="openNewTask">+ Nova tarefa</button>
     </header>
 
-    <section class="card">
+    <section v-if="showForm" class="card">
       <h2>{{ form.id ? 'Editar tarefa' : 'Nova tarefa' }}</h2>
       <form class="task-form" @submit.prevent="saveTask">
         <label class="field full">
           <span>Título</span>
-          <input v-model="form.title" placeholder="Ex.: Estudar Vue" />
+          <input ref="titleInput" v-model="form.title" placeholder="Ex.: Estudar Vue" />
         </label>
 
         <label class="field full">
@@ -230,7 +249,7 @@ onMounted(() => {
         </label>
 
         <div class="form-actions">
-          <button v-if="form.id" type="button" class="btn btn-ghost" @click="resetForm">Cancelar</button>
+          <button type="button" class="btn btn-ghost" @click="resetForm">Cancelar</button>
           <button type="submit" class="btn btn-primary">
             {{ form.id ? 'Salvar alterações' : 'Criar tarefa' }}
           </button>
@@ -368,7 +387,14 @@ body {
 
 .app { max-width: 1000px; margin: 0 auto; padding: 40px 16px; }
 
-.header { margin-bottom: 24px; }
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 24px;
+}
 .header h1 { margin: 0; font-size: 28px; }
 .header p { margin: 4px 0 0; color: var(--muted); }
 
