@@ -17,14 +17,29 @@ const emptyForm = () => ({
 const form = ref(emptyForm())
 const errors = ref({})
 
+const loadError = ref('')
+let lastTasksRequest = 0
+
 async function loadTasks() {
-  const { data } = await api.get('/tasks', { params: filters.value })
-  tasks.value = data
+  const requestId = ++lastTasksRequest
+  try {
+    const { data } = await api.get('/tasks', { params: filters.value })
+    if (requestId !== lastTasksRequest) return
+    tasks.value = data
+    loadError.value = ''
+  } catch {
+    if (requestId !== lastTasksRequest) return
+    loadError.value = 'Não foi possível carregar as tarefas. Verifique se a API está rodando.'
+  }
 }
 
 async function loadCategories() {
-  const { data } = await api.get('/categories')
-  categories.value = data
+  try {
+    const { data } = await api.get('/categories')
+    categories.value = data
+  } catch {
+    loadError.value = 'Não foi possível carregar as categorias. Verifique se a API está rodando.'
+  }
 }
 
 async function saveTask() {
@@ -67,7 +82,12 @@ function resetForm() {
 
 async function deleteTask(task) {
   if (!confirm(`Excluir a tarefa "${task.title}"?`)) return
-  await api.delete(`/tasks/${task.id}`)
+  try {
+    await api.delete(`/tasks/${task.id}`)
+    if (form.value.id === task.id) resetForm()
+  } catch {
+    alert('Erro ao excluir a tarefa.')
+  }
   loadTasks()
 }
 
@@ -206,6 +226,8 @@ onMounted(() => {
         </div>
       </div>
 
+      <p v-if="loadError" class="load-error">{{ loadError }}</p>
+
       <div class="table-wrapper">
         <table>
           <thead>
@@ -238,7 +260,7 @@ onMounted(() => {
           </tbody>
         </table>
       </div>
-      <p v-if="tasks.length === 0" class="empty">Nenhuma tarefa encontrada.</p>
+      <p v-if="!loadError && tasks.length === 0" class="empty">Nenhuma tarefa encontrada.</p>
     </section>
 
     <section class="card">
@@ -410,6 +432,16 @@ tbody tr:hover { background: #fafafa; }
 .errors {
   margin: 16px 0 0;
   padding: 12px 16px 12px 32px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  color: var(--danger);
+  font-size: 14px;
+}
+
+.load-error {
+  margin: 0 0 16px;
+  padding: 12px 16px;
   background: #fef2f2;
   border: 1px solid #fecaca;
   border-radius: 8px;
