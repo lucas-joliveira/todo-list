@@ -107,7 +107,7 @@ Erros de validação retornam **422** com as mensagens por campo:
 - **Exclusão de categoria com tarefas é bloqueada** (`dependent: :restrict_with_error`) para não apagar tarefas sem querer.
 - **Categoria incluída no JSON da tarefa**, com `includes(:category)` para evitar o problema de N+1 queries.
 - **Configuração por variáveis de ambiente**: `DB_HOST`, `DB_PORT` e `VITE_API_URL` permitem rodar o mesmo código dentro e fora do Docker.
-- **CORS** liberado apenas para a origem do frontend (`localhost:5173`).
+- **CORS** liberado apenas para as origens do frontend, configuráveis pela variável `CORS_ORIGINS` (padrão: `localhost:5173` e `127.0.0.1:5173`).
 
 ## Fluxo de desenvolvimento (GitFlow)
 
