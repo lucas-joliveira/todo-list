@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import api from './api'
 
 const tasks = ref([])
@@ -18,6 +18,7 @@ function todayISO() {
 }
 
 const isOverdue = (task) => Boolean(task.due_date) && task.status !== 'done' && task.due_date < todayISO()
+const plural = (count, one, many) => `${count} ${count === 1 ? one : many}`
 
 const emptyForm = () => ({
   id: null, title: '', description: '', status: 'pending',
@@ -29,6 +30,17 @@ const errors = ref({})
 const loadError = ref('')
 let lastTasksRequest = 0
 const loading = ref(true)
+
+const summary = computed(() => {
+  const count = (status) => tasks.value.filter((task) => task.status === status).length
+  return {
+    total: tasks.value.length,
+    pending: count('pending'),
+    inProgress: count('in_progress'),
+    done: count('done'),
+    overdue: tasks.value.filter(isOverdue).length,
+  }
+})
 
 async function loadTasks() {
   const requestId = ++lastTasksRequest
@@ -232,7 +244,16 @@ onMounted(() => {
 
     <section class="card">
       <div class="card-header">
-        <h2>Tarefas</h2>
+        <div>
+          <h2>Tarefas</h2>
+          <p v-if="!loading && tasks.length" class="summary">
+            {{ plural(summary.total, 'tarefa', 'tarefas') }} ·
+            {{ plural(summary.pending, 'pendente', 'pendentes') }} ·
+            {{ summary.inProgress }} em andamento ·
+            {{ plural(summary.done, 'concluída', 'concluídas') }}
+            <span v-if="summary.overdue" class="overdue">· {{ plural(summary.overdue, 'atrasada', 'atrasadas') }}</span>
+          </p>
+        </div>
         <div class="filters">
           <select v-model="filters.category_id">
             <option value="">Todas as categorias</option>
@@ -370,6 +391,7 @@ body {
   margin-bottom: 16px;
 }
 .card-header h2 { margin: 0; }
+.summary { margin: 4px 0 0; font-size: 13px; color: var(--muted); }
 
 /* Formulário */
 .task-form { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
