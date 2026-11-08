@@ -28,3 +28,5 @@ pt-BR:
       taken: já está em uso
       inclusion: não é um valor válido
       invalid: não é válido
+      not_found: não existe
+      invalid_date: não é uma data válida
