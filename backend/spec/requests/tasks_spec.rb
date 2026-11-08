@@ -105,6 +105,20 @@ RSpec.describe "Tasks", type: :request do
       expect(json["category"]).to include("Categoria é obrigatória")
     end
 
+    it "responde 422 quando a data de vencimento é inválida" do
+      post "/tasks", params: { task: valid_params[:task].merge(due_date: "not-a-date") }, as: :json
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(json["due_date"]).to include("Vencimento não é uma data válida")
+    end
+
+    it "responde 422 dizendo que a categoria não existe quando o id é desconhecido" do
+      post "/tasks", params: { task: valid_params[:task].merge(category_id: 0) }, as: :json
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(json["category"]).to eq([ "Categoria não existe" ])
+    end
+
     it "responde 422 quando o status é inválido" do
       post "/tasks", params: { task: valid_params[:task].merge(status: "xyz") }, as: :json
 
