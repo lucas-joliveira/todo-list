@@ -213,7 +213,7 @@ onMounted(() => {
       <form class="task-form" @submit.prevent="saveTask">
         <label class="field full">
           <span>Título</span>
-          <input ref="titleInput" v-model="form.title" placeholder="Ex.: Estudar Vue" />
+          <input ref="titleInput" v-model="form.title" placeholder="Ex.: Fazer compras" />
         </label>
 
         <label class="field full">
@@ -320,8 +320,12 @@ onMounted(() => {
                 </label>
               </td>
               <td>{{ task.category.name }}</td>
-              <td><span class="badge" :class="`status-${task.status}`">{{ statusLabels[task.status] }}</span></td>
-              <td><span class="badge" :class="`priority-${task.priority}`">{{ priorityLabels[task.priority] }}</span></td>
+              <td><span class="status" :class="`status-${task.status}`">{{ statusLabels[task.status] }}</span></td>
+              <td>
+                <span class="priority" :class="`priority-${task.priority}`">
+                  <span class="dot" aria-hidden="true"></span>{{ priorityLabels[task.priority] }}
+                </span>
+              </td>
               <td class="due-cell" :class="{ overdue: isOverdue(task) }">
                 {{ formatDate(task.due_date) }}
                 <small v-if="isOverdue(task)">atrasada</small>
@@ -366,14 +370,19 @@ onMounted(() => {
 
 <style>
 :root {
-  --bg: #f4f5f7;
+  /* Paleta inspirada na identidade visual da Capricho */
+  --bg: #f5f3f7;
   --surface: #ffffff;
-  --text: #1f2937;
-  --muted: #6b7280;
-  --border: #e5e7eb;
-  --primary: #4f46e5;
-  --primary-hover: #4338ca;
-  --danger: #dc2626;
+  --surface-hover: #faf8fc;
+  --text: #261339;
+  --muted: #73677e;
+  --border: #e7e1ee;
+  --primary: #8e56c2;
+  --primary-hover: #7a45ad;
+  --primary-ring: rgba(142, 86, 194, 0.2);
+  --accent: #54baa9;
+  --accent-text: #2a7f71;
+  --danger: #b42318;
 }
 
 * { box-sizing: border-box; }
@@ -395,16 +404,24 @@ body {
   gap: 16px;
   margin-bottom: 24px;
 }
-.header h1 { margin: 0; font-size: 28px; }
+.header h1 { margin: 0; font-size: 26px; font-weight: 650; letter-spacing: -0.01em; }
+.header h1::after {
+  content: '';
+  display: block;
+  width: 40px;
+  height: 4px;
+  margin-top: 6px;
+  border-radius: 2px;
+  background: var(--accent);
+}
 .header p { margin: 4px 0 0; color: var(--muted); }
 
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 10px;
   padding: 24px;
   margin-bottom: 24px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 .card h2 { margin: 0 0 16px; font-size: 18px; }
 
@@ -440,7 +457,7 @@ textarea { resize: vertical; }
 input:focus, textarea:focus, select:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+  box-shadow: 0 0 0 3px var(--primary-ring);
 }
 
 /* Botões */
@@ -481,7 +498,7 @@ th {
 }
 td { padding: 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
 tbody tr:last-child td { border-bottom: none; }
-tbody tr:hover { background: #fafafa; }
+tbody tr:hover { background: var(--surface-hover); }
 .title-cell small { display: block; margin-top: 2px; color: var(--muted); }
 .task-title { display: flex; align-items: flex-start; gap: 10px; cursor: pointer; }
 .task-title input {
@@ -491,7 +508,7 @@ tbody tr:hover { background: #fafafa; }
   padding: 0;
   flex-shrink: 0;
   cursor: pointer;
-  accent-color: var(--primary);
+  accent-color: var(--accent);
 }
 .is-done td { color: var(--muted); }
 .is-done .task-title strong { font-weight: 500; text-decoration: line-through; }
@@ -500,20 +517,16 @@ tbody tr:hover { background: #fafafa; }
 .overdue { color: var(--danger); font-weight: 500; }
 .actions { display: flex; justify-content: flex-end; gap: 6px; }
 
-.badge {
-  display: inline-block;
-  padding: 2px 10px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 500;
-  white-space: nowrap;
-}
-.status-pending { background: #fef3c7; color: #92400e; }
-.status-in_progress { background: #dbeafe; color: #1e40af; }
-.status-done { background: #dcfce7; color: #166534; }
-.priority-low { background: #f3f4f6; color: #374151; }
-.priority-medium { background: #ffedd5; color: #9a3412; }
-.priority-high { background: #fee2e2; color: #991b1b; }
+.status, .priority { font-size: 13px; white-space: nowrap; }
+.status-pending { color: var(--text); }
+.status-in_progress { color: var(--accent-text); font-weight: 500; }
+.status-done { color: var(--muted); }
+
+.priority { display: inline-flex; align-items: center; gap: 6px; }
+.dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.priority-low .dot { background: #a8a29e; }
+.priority-medium .dot { background: #d97706; }
+.priority-high .dot { background: #dc2626; }
 
 .empty { margin: 0; padding: 24px 0; text-align: center; color: var(--muted); }
 
