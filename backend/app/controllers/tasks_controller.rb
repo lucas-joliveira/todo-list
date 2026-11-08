@@ -23,7 +23,7 @@ class TasksController < ApplicationController
     if @task.save
       render json: @task, include: :category, status: :created, location: @task
     else
-      render json: @task.errors, status: :unprocessable_content
+      render json: @task.errors.to_hash(true), status: :unprocessable_content
     end
   end
 
@@ -32,7 +32,7 @@ class TasksController < ApplicationController
     if @task.update(task_params)
       render json: @task, include: :category
     else
-      render json: @task.errors, status: :unprocessable_content
+      render json: @task.errors.to_hash(true), status: :unprocessable_content
     end
   end
 

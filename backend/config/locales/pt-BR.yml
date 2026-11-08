@@ -1,0 +1,30 @@
+pt-BR:
+  activerecord:
+    models:
+      task: Tarefa
+      category: Categoria
+    attributes:
+      task:
+        title: Título
+        description: Descrição
+        status: Status
+        priority: Prioridade
+        due_date: Vencimento
+        category: Categoria
+      category:
+        name: Nome
+        tasks: tarefas
+    errors:
+      messages:
+        required: é obrigatória
+        restrict_dependent_destroy:
+          has_one: "Não é possível excluir: existe %{record} vinculada"
+          has_many: "Não é possível excluir: existem %{record} vinculadas"
+
+  errors:
+    format: "%{attribute} %{message}"
+    messages:
+      blank: não pode ficar em branco
+      taken: já está em uso
+      inclusion: não é um valor válido
+      invalid: não é válido

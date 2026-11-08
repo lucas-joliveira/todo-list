@@ -4,6 +4,17 @@ Aplicação de lista de tarefas com **API REST em Ruby on Rails** e **frontend e
 
 Cada tarefa pertence a uma categoria e tem título, descrição, status, prioridade e data de vencimento. A tela lista as tarefas com filtros por categoria, status e prioridade, e permite criar, editar e excluir tarefas e categorias.
 
+## Funcionalidades da tela
+
+- Listagem com filtros combináveis por categoria, status e prioridade
+- Resumo da lista exibida: total, pendentes, em andamento, concluídas e atrasadas
+- Conclusão de tarefas direto na lista, por checkbox
+- Destaque de tarefas atrasadas (vencimento passado e não concluídas)
+- Formulário de criar e editar que abre sob demanda
+- Gestão de categorias: criar, renomear e excluir (bloqueado quando há tarefas vinculadas)
+- Mensagens de validação da API exibidas em português
+- Paleta de cores inspirada na identidade visual da [Capricho](https://maiscapricho.com.br/)
+
 ## Stack
 
 | Camada | Tecnologia |
@@ -94,10 +105,10 @@ curl -X POST http://localhost:3000/tasks \
   -d '{"task":{"title":"Estudar Rails","priority":"high","due_date":"2026-12-01","category_id":1}}'
 ```
 
-Erros de validação retornam **422** com as mensagens por campo:
+Erros de validação retornam **422** com as mensagens completas, em português, agrupadas por campo:
 
 ```json
-{ "title": ["can't be blank"], "category": ["must exist"] }
+{ "title": ["Título não pode ficar em branco"], "category": ["Categoria é obrigatória"] }
 ```
 
 ## Decisões técnicas
