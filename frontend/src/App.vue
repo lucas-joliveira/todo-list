@@ -25,7 +25,8 @@ const emptyForm = () => ({
   priority: 'low', due_date: '', category_id: '',
 })
 const form = ref(emptyForm())
-const errors = ref({})
+const errors = ref([])
+const errorMessages = (data) => Object.values(data).flat()
 const showForm = ref(false)
 const titleInput = ref(null)
 
@@ -81,7 +82,7 @@ async function loadCategories() {
 }
 
 async function saveTask() {
-  errors.value = {}
+  errors.value = []
   const { id, ...payload } = form.value
   try {
     if (id) {
@@ -93,7 +94,7 @@ async function saveTask() {
     loadTasks()
   } catch (error) {
     if (error.response?.status === 422) {
-      errors.value = error.response.data
+      errors.value = errorMessages(error.response.data)
     } else {
       alert('Erro ao salvar a tarefa.')
     }
@@ -101,7 +102,7 @@ async function saveTask() {
 }
 
 function editTask(task) {
-  errors.value = {}
+  errors.value = []
   form.value = {
     id: task.id,
     title: task.title,
@@ -116,7 +117,7 @@ function editTask(task) {
 
 function resetForm() {
   form.value = emptyForm()
-  errors.value = {}
+  errors.value = []
   showForm.value = false
 }
 
@@ -147,8 +148,7 @@ const categoryErrors = ref([])
 
 function showCategoryErrors(error) {
   if (error.response?.status === 422) {
-    categoryErrors.value = Object.entries(error.response.data)
-      .map(([field, messages]) => `${field}: ${messages.join(', ')}`)
+    categoryErrors.value = errorMessages(error.response.data)
   } else {
     alert('Erro na operação com a categoria.')
   }
@@ -256,8 +256,8 @@ onMounted(() => {
         </div>
       </form>
 
-      <ul v-if="Object.keys(errors).length" class="errors">
-        <li v-for="(messages, field) in errors" :key="field">{{ field }}: {{ messages.join(', ') }}</li>
+      <ul v-if="errors.length" class="errors">
+        <li v-for="message in errors" :key="message">{{ message }}</li>
       </ul>
     </section>
 

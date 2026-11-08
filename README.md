@@ -94,10 +94,10 @@ curl -X POST http://localhost:3000/tasks \
   -d '{"task":{"title":"Estudar Rails","priority":"high","due_date":"2026-12-01","category_id":1}}'
 ```
 
-Erros de validação retornam **422** com as mensagens por campo:
+Erros de validação retornam **422** com as mensagens completas, em português, agrupadas por campo:
 
 ```json
-{ "title": ["can't be blank"], "category": ["must exist"] }
+{ "title": ["Título não pode ficar em branco"], "category": ["Categoria é obrigatória"] }
 ```
 
 ## Decisões técnicas
